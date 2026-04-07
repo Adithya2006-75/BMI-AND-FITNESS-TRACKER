@@ -1,1 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>YouFit - Ultimate Fitness</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #111418;
+    --card: #161b22;
+    --card2: #1c2128;
+    --border: #21262d;
+    --green: #39d353;
+    --green-dim: #238636;
+    --green-glow: rgba(57,211,83,0.15);
+    --green-glow2: rgba(57,211,83,0.08);
+    --red: #f85149;
+    --orange: #e3942c;
+    --blue: #58a6ff;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #484f58;
+    --nav-h: 72px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; }
 
+  /* SCROLLABLE PAGES */
+  .page { display:none; position:absolute; top:0; left:0; right:0; bottom:var(--nav-h); overflow-y:auto; overflow-x:hidden; padding:0 0 20px 0; }
+  .page.active { display:block; animation: fadeIn .2s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+  /* NAV */
+  .nav { position:fixed; bottom:0; left:0; right:0; height:var(--nav-h); background:var(--bg2); border-top:1px solid var(--border); display:flex; align-items:flex-start; padding-top:8px; z-index:100; }
+  .nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; padding:4px 0; opacity:.5; transition:opacity .2s; }
+  .nav-item.active { opacity:1; }
+  .nav-item svg { width:22px; height:22px; }
+  .nav-item span { font-size:10px; font-weight:500; }
+  .nav-item.active svg path, .nav-item.active svg rect, .nav-item.active svg circle, .nav-item.active svg polyline, .nav-item.active svg line, .nav-item.active svg polygon { stroke: var(--green) !important; }
+  .nav-item.active span { color: var(--green); }
+
+  /* HEADER */
+  .header { display:flex; justify-content:space-between; align-items:center; padding:16px 16px 0; position:sticky; top:0; background:var(--bg); z-index:10; }
+  .logo { font-family:'Rajdhani',sans-serif; font-size:22px; font-weight:700; letter-spacing:1px; }
+  .logo span { color:var(--green); }
+  .header-sub { font-size:12px; color:var(--text2); font-weight:500; }
+
+  /* WELCOME CARD */
+  .welcome-card { margin:16px; padding:20px; background:linear-gradient(135deg,var(--card) 0%,var(--card2) 100%); border:1px solid var(--green-dim); border-radius:16px; display:flex; align-items:center; gap:16px; box-shadow:0 0 30px var(--green-glow2),inset 0 0 60px var(--green-glow2); }
+  .welcome-icon { width:48px; height:48px; background:var(--green-dim); border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 0 16px var(--green-glow); }
+  .welcome-icon svg { width:26px; height:26px; }
+  .welcome-title { font-size:20px; font-weight:700; font-family:'Rajdhani',sans-serif; }
+  .welcome-sub { font-size:13px; color:var(--text2); margin-top:2px; }
+
+  /* STAT CARDS */
+  .stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px; }
+  .stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 12px; text-align:center; }
+  .stat-icon { font-size:20px; margin-bottom:6px; }
+  .stat-val { font-size:28px; font-weight:700; font-family:'Rajdhani',sans-serif; line-height:1; }
+  .stat-label { font-size:11px; color:var(--text2); margin-top:4px; }
+
+  /* SECTION TITLE */
+  .section-title { font-size:11px; font-weight:600; letter-spacing:1.5px; color:var(--text2); padding:0 16px; margin:20px 0 10px; text-transform:uppercase; }
+
+  /* QUICK ACTIONS */
+  .action-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:0 16px; }
+  .action-btn { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px 16px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all .2s; font-size:15px; font-weight:500; }
+  .action-btn:hover, .action-btn:active { background:var(--card2); border-color:var(--green-dim); box-shadow:0 0 12px var(--green-glow2); }
+  .action-btn svg { width:22px; height:22px; opacity:.9; }
+  .action-btn.solo { grid-column:span 1; }
+
+  /* --- LOG PAGE --- */
+  .log-header { padding:16px; }
+  .log-date { font-size:13px; color:var(--text2); margin-bottom:4px; }
+  .log-title { font-size:22px; font-weight:700; font-family:'Rajdhani',sans-serif; }
+  .muscle-tabs { display:flex; gap:8px; padding:0 16px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; margin-bottom:12px; }
+  .muscle-tabs::-webkit-scrollbar { display:none; }
+  .muscle-tab { flex-shrink:0; padding:7px 14px; border-radius:20px; background:var(--card); border:1px solid var(--border); font-size:12px; font-weight:500; cursor:pointer; transition:all .15s; white-space:nowrap; }
+  .muscle-tab.active { background:var(--green-dim); border-color:var(--green); color:#fff; }
+  .exercise-list { padding:0 16px; display:flex; flex-direction:column; gap:10px; }
+  .ex-card { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  .ex-header { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; cursor:pointer; }
+  .ex-name { font-size:15px; font-weight:600; }
+  .ex-sets-count { font-size:12px; color:var(--text2); background:var(--card2); padding:3px 9px; border-radius:20px; }
+  .ex-body { display:none; padding:0 16px 14px; }
+  .ex-body.open { display:block; }
+  .sets-table { width:100%; border-collapse:collapse; }
+  .sets-table th { font-size:11px; color:var(--text2); text-align:left; padding:6px 4px; text-transform:uppercase; letter-spacing:.8px; }
+  .sets-table td { padding:6px 4px; font-size:14px; }
+  .set-input { background:var(--bg2); border:1px solid var(--border); border-radius:8px; width:70px; padding:6px 8px; color:var(--text); font-size:14px; text-align:center; }
+  .set-input:focus { outline:none; border-color:var(--green-dim); }
+  .del-set { background:none; border:none; color:var(--text3); cursor:pointer; font-size:16px; padding:2px 6px; }
+  .del-set:hover { color:var(--red); }
+  .add-set-btn { margin-top:10px; width:100%; padding:9px; background:var(--card2); border:1px dashed var(--border); border-radius:10px; color:var(--text2); font-size:13px; cursor:pointer; transition:.15s; }
+  .add-set-btn:hover { border-color:var(--green-dim); color:var(--green); }
+  .save-log-btn { margin:20px 16px 0; width:calc(100% - 32px); padding:14px; background:var(--green-dim); border:none; border-radius:14px; color:#fff; font-size:16px; font-weight:700; font-family:'Rajdhani',sans-serif; letter-spacing:1px; cursor:pointer; transition:.2s; box-shadow:0 0 20px var(--green-glow); }
+  .save-log-btn:hover { background:var(--green); }
+
+  /* --- TIMER PAGE --- */
+  .timer-container { padding:20px 16px; display:flex; flex-direction:column; align-items:center; }
+  .timer-tabs { display:flex; background:var(--card); border-radius:12px; padding:4px; margin-bottom:32px; width:100%; }
+  .timer-tab { flex:1; padding:10px; text-align:center; border-radius:9px; cursor:pointer; font-size:14px; font-weight:500; transition:.2s; }
+  .timer-tab.active { background:var(--green-dim); color:#fff; }
+  .timer-display { font-family:'Rajdhani',sans-serif; font-size:88px; font-weight:700; letter-spacing:2px; line-height:1; margin:16px 0; color:var(--text); text-shadow:0 0 40px var(--green-glow); }
+  .timer-ring { width:240px; height:240px; position:relative; margin-bottom:8px; }
+  .timer-ring svg { transform:rotate(-90deg); }
+  .timer-ring-text { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .timer-controls { display:flex; gap:16px; align-items:center; margin-top:24px; }
+  .timer-btn { width:64px; height:64px; border-radius:50%; border:none; cursor:pointer; font-size:22px; display:flex; align-items:center; justify-content:center; transition:.2s; }
+  .timer-btn.primary { background:var(--green-dim); box-shadow:0 0 20px var(--green-glow); width:72px; height:72px; }
+  .timer-btn.primary:hover { background:var(--green); }
+  .timer-btn.secondary { background:var(--card2); border:1px solid var(--border); color:var(--text2); }
+  .timer-btn.secondary:hover { border-color:var(--green-dim); }
+  .rest-presets { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; justify-content:center; }
+  .preset-btn { padding:8px 16px; background:var(--card); border:1px solid var(--border); border-radius:20px; font-size:13px; cursor:pointer; transition:.15s; }
+  .preset-btn:hover { border-color:var(--green-dim); color:var(--green); }
+  .lap-list { width:100%; margin-top:20px; max-height:180px; overflow-y:auto; }
+  .lap-item { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px; }
+  .lap-num { color:var(--text2); }
+
+  /* --- STATS PAGE --- */
+  .stats-page { padding:16px; }
+  .chart-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; margin-bottom:16px; }
+  .chart-title { font-size:14px; font-weight:600; margin-bottom:4px; }
+  .chart-sub { font-size:11px; color:var(--text2); margin-bottom:16px; }
+  .chart-wrap { position:relative; height:180px; }
+
+  /* --- STREAK PAGE --- */
+  .streak-hero { margin:16px; background:linear-gradient(135deg,var(--card),var(--card2)); border:1px solid var(--border); border-radius:20px; padding:28px; text-align:center; }
+  .streak-num { font-family:'Rajdhani',sans-serif; font-size:72px; font-weight:700; color:var(--green); line-height:1; text-shadow:0 0 40px var(--green-glow); }
+  .streak-label { font-size:14px; color:var(--text2); margin-top:4px; }
+  .streak-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:0 16px 16px; }
+  .streak-stat { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; text-align:center; }
+  .streak-stat-val { font-size:22px; font-weight:700; font-family:'Rajdhani',sans-serif; color:var(--green); }
+  .streak-stat-label { font-size:11px; color:var(--text2); margin-top:2px; }
+  .week-calendar { margin:0 16px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; }
+  .week-cal-title { font-size:13px; font-weight:600; margin-bottom:12px; color:var(--text2); text-transform:uppercase; letter-spacing:1px; }
+  .week-days { display:flex; justify-content:space-between; }
+  .week-day { display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .week-day-name { font-size:11px; color:var(--text2); }
+  .week-day-dot { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; border:2px solid var(--border); }
+  .week-day-dot.done { background:var(--green-dim); border-color:var(--green); color:#fff; box-shadow:0 0 10px var(--green-glow); }
+  .week-day-dot.today { border-color:var(--green); color:var(--green); }
+  .monthly-grid { margin:16px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; }
+  .month-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .month-nav { background:none; border:none; color:var(--text2); font-size:18px; cursor:pointer; padding:4px 10px; }
+  .month-grid-days { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .month-day-name { font-size:10px; color:var(--text2); text-align:center; padding:4px 0; }
+  .month-day { font-size:12px; text-align:center; padding:6px 2px; border-radius:50%; cursor:default; }
+  .month-day.worked { background:var(--green-dim); color:#fff; border-radius:50%; font-weight:600; }
+  .month-day.today-cell { border:1px solid var(--green); color:var(--green); border-radius:50%; }
+  .month-day.empty { color:var(--text3); }
+
+  /* --- TIMETABLE PAGE --- */
+  .timetable-page { padding:16px; }
+  .day-schedule { background:var(--card); border:1px solid var(--border); border-radius:14px; margin-bottom:12px; overflow:hidden; }
+  .day-header { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; cursor:pointer; }
+  .day-name { font-size:15px; font-weight:600; }
+  .day-badge { font-size:11px; padding:3px 10px; border-radius:20px; background:var(--card2); color:var(--text2); }
+  .day-badge.rest { color:var(--text3); }
+  .day-content { display:none; padding:0 16px 14px; }
+  .day-content.open { display:block; }
+  .workout-entry { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+  .workout-entry:last-child { border:none; }
+  .we-name { font-size:14px; }
+  .we-sets { font-size:12px; color:var(--text2); }
+  .add-workout-to-day { width:100%; padding:9px; background:none; border:1px dashed var(--border); border-radius:10px; color:var(--text2); font-size:13px; cursor:pointer; margin-top:8px; transition:.15s; }
+  .add-workout-to-day:hover { border-color:var(--green-dim); color:var(--green); }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; align-items:flex-end; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--bg2); border-radius:20px 20px 0 0; padding:24px; width:100%; max-height:80vh; overflow-y:auto; }
+  .modal-title { font-size:18px; font-weight:700; font-family:'Rajdhani',sans-serif; margin-bottom:16px; }
+  .modal-input { width:100%; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px; color:var(--text); font-size:14px; margin-bottom:10px; }
+  .modal-input:focus { outline:none; border-color:var(--green-dim); }
+  .modal-btn { width:100%; padding:13px; background:var(--green-dim); border:none; border-radius:12px; color:#fff; font-size:15px; font-weight:600; cursor:pointer; }
+  .modal-cancel { width:100%; padding:13px; background:none; border:none; color:var(--text2); font-size:14px; cursor:pointer; margin-top:8px; }
+
+  /* --- BMI PAGE --- */
+  .bmi-page { padding:16px; }
+  .bmi-form { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:16px; }
+  .input-group { margin-bottom:16px; }
+  .input-label { font-size:12px; color:var(--text2); margin-bottom:6px; font-weight:500; text-transform:uppercase; letter-spacing:.8px; display:block; }
+  .input-row { display:flex; gap:10px; }
+  .bmi-input { flex:1; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px; color:var(--text); font-size:16px; text-align:center; transition:.2s; }
+  .bmi-input:focus { outline:none; border-color:var(--green-dim); }
+  .unit-toggle { display:flex; background:var(--bg2); border-radius:10px; overflow:hidden; margin-bottom:16px; }
+  .unit-opt { flex:1; padding:10px; text-align:center; font-size:13px; cursor:pointer; transition:.2s; }
+  .unit-opt.active { background:var(--green-dim); color:#fff; }
+  .calc-btn { width:100%; padding:14px; background:var(--green-dim); border:none; border-radius:12px; color:#fff; font-size:16px; font-weight:700; font-family:'Rajdhani',sans-serif; cursor:pointer; box-shadow:0 0 20px var(--green-glow2); transition:.2s; }
+  .calc-btn:hover { background:var(--green); }
+  .bmi-result { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; text-align:center; display:none; }
+  .bmi-result.show { display:block; }
+  .bmi-number { font-family:'Rajdhani',sans-serif; font-size:72px; font-weight:700; line-height:1; }
+  .bmi-category { font-size:16px; font-weight:600; margin-top:4px; }
+  .bmi-bar-wrap { margin:20px 0 8px; }
+  .bmi-bar { height:10px; border-radius:10px; background:linear-gradient(to right,#58a6ff,#39d353,#e3942c,#f85149); position:relative; }
+  .bmi-needle { position:absolute; top:-4px; width:3px; height:18px; background:#fff; border-radius:2px; transform:translateX(-50%); transition:left .6s ease; box-shadow:0 0 6px rgba(255,255,255,.5); }
+  .bmi-range-labels { display:flex; justify-content:space-between; font-size:10px; color:var(--text2); margin-top:4px; }
+  .bmi-info { margin-top:16px; background:var(--bg2); border-radius:12px; padding:14px; text-align:left; }
+  .bmi-info-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .bmi-info-row:last-child { border:none; }
+  .bmi-info-label { color:var(--text2); }
+
+  /* --- PR PAGE --- */
+  .pr-page { padding:16px; }
+  .pr-filter { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:12px; scrollbar-width:none; }
+  .pr-filter::-webkit-scrollbar { display:none; }
+  .pr-filter-btn { flex-shrink:0; padding:6px 14px; border-radius:20px; background:var(--card); border:1px solid var(--border); font-size:12px; cursor:pointer; transition:.15s; }
+  .pr-filter-btn.active { background:var(--green-dim); border-color:var(--green); color:#fff; }
+  .pr-list { display:flex; flex-direction:column; gap:10px; }
+  .pr-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; display:flex; align-items:center; gap:14px; }
+  .pr-rank { font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:var(--text3); width:32px; text-align:center; }
+  .pr-rank.gold { color:#f0c040; }
+  .pr-rank.silver { color:#8b949e; }
+  .pr-rank.bronze { color:#b87333; }
+  .pr-info { flex:1; }
+  .pr-ex { font-size:15px; font-weight:600; }
+  .pr-date { font-size:11px; color:var(--text2); margin-top:2px; }
+  .pr-weight { font-family:'Rajdhani',sans-serif; font-size:24px; font-weight:700; color:var(--green); }
+  .pr-weight span { font-size:13px; color:var(--text2); }
+  .no-data { text-align:center; padding:40px 20px; color:var(--text2); }
+  .no-data svg { width:48px; height:48px; margin:0 auto 12px; display:block; opacity:.3; }
+
+  /* Toast */
+  .toast { position:fixed; bottom:calc(var(--nav-h) + 12px); left:50%; transform:translateX(-50%) translateY(20px); background:var(--card2); border:1px solid var(--green-dim); padding:12px 20px; border-radius:12px; font-size:14px; font-weight:500; opacity:0; transition:.3s; z-index:300; white-space:nowrap; box-shadow:0 0 20px var(--green-glow); }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ======== HOME ======== -->
+<div class="page active" id="page-home">
+  <div class="header">
+    <div class="logo">YOU<span>FIT</span></div>
+    <div class="header-sub">Ultimate Fitness</div>
+  </div>
+  <div class="welcome-card">
+    <div class="welcome-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    </div>
+    <div>
+      <div class="welcome-title">Welcome Back 💪</div>
+      <div class="welcome-sub">Track workouts, stay consistent, improve daily</div>
+    </div>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="color:var(--green)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </div>
+      <div class="stat-val" id="home-sets">0</div>
+      <div class="stat-label">Today's Sets</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="color:var(--blue)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+      </div>
+      <div class="stat-val" id="home-vol">0</div>
+      <div class="stat-label">Volume (kg)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="color:var(--red)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c0 0-6 5-6 10a6 6 0 0012 0C18 7 12 2 12 2z"/></svg>
+      </div>
+      <div class="stat-val" id="home-streak">0</div>
+      <div class="stat-label">Day Streak</div>
+    </div>
+  </div>
+  <div class="section-title">Quick Actions</div>
+  <div class="action-grid">
+    <div class="action-btn" onclick="goTo('log')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+      Log Workout
+    </div>
+    <div class="action-btn" onclick="goTo('timer')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Timer
+    </div>
+    <div class="action-btn" onclick="goTo('stats')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Progress
+    </div>
+    <div class="action-btn" onclick="goTo('streak')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><path d="M12 2c0 0-6 5-6 10a6 6 0 0012 0C18 7 12 2 12 2z"/></svg>
+      Streak
+    </div>
+    <div class="action-btn" onclick="goTo('plan')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Timetable
+    </div>
+    <div class="action-btn" onclick="goTo('bmi')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      BMI Calc
+    </div>
+    <div class="action-btn" onclick="goTo('prs')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg>
+      Records
+    </div>
+  </div>
+</div>
+
+<!-- ======== LOG ======== -->
+<div class="page" id="page-log">
+  <div class="log-header">
+    <div class="header">
+      <div class="logo">FIT<span>FORGE</span></div>
+      <div class="header-sub">Ultimate Fitness</div>
+    </div>
+    <div style="padding:12px 16px 0">
+      <div class="log-date" id="log-date"></div>
+      <div class="log-title">Log Workout</div>
+    </div>
+  </div>
+  <div class="muscle-tabs" id="muscle-tabs"></div>
+  <div class="exercise-list" id="exercise-list"></div>
+  <button class="save-log-btn" onclick="saveLog()">💾 Save Today's Log</button>
+</div>
+
+<!-- ======== TIMER ======== -->
+<div class="page" id="page-timer">
+  <div class="header">
+    <div class="logo">You<span>Fit</span></div>
+    <div class="header-sub">Ultimate Fitness</div>
+  </div>
+  <div class="timer-container">
+    <div class="timer-tabs">
+      <div class="timer-tab active" id="tab-stopwatch" onclick="switchTimer('stopwatch')">Stopwatch</div>
+      <div class="timer-tab" id="tab-rest" onclick="switchTimer('rest')">Rest Timer</div>
+    </div>
+
+    <!-- Stopwatch -->
+    <div id="stopwatch-ui" style="width:100%;display:flex;flex-direction:column;align-items:center">
+      <div class="timer-ring">
+        <svg width="240" height="240" viewBox="0 0 240 240">
+          <circle cx="120" cy="120" r="110" fill="none" stroke="var(--card)" stroke-width="12"/>
+          <circle id="sw-ring" cx="120" cy="120" r="110" fill="none" stroke="var(--green)" stroke-width="12" stroke-dasharray="691" stroke-dashoffset="691" stroke-linecap="round"/>
+        </svg>
+        <div class="timer-ring-text">
+          <div class="timer-display" id="sw-display">00:00.0</div>
+        </div>
+      </div>
+      <div class="timer-controls">
+        <button class="timer-btn secondary" onclick="swLap()">🏁</button>
+        <button class="timer-btn primary" id="sw-btn" onclick="toggleStopwatch()">▶</button>
+        <button class="timer-btn secondary" onclick="swReset()">↺</button>
+      </div>
+      <div class="lap-list" id="lap-list"></div>
+    </div>
+
+    <!-- Rest Timer -->
+    <div id="rest-ui" style="width:100%;display:none;flex-direction:column;align-items:center">
+      <div class="timer-ring">
+        <svg width="240" height="240" viewBox="0 0 240 240">
+          <circle cx="120" cy="120" r="110" fill="none" stroke="var(--card)" stroke-width="12"/>
+          <circle id="rest-ring" cx="120" cy="120" r="110" fill="none" stroke="var(--orange)" stroke-width="12" stroke-dasharray="691" stroke-dashoffset="0" stroke-linecap="round"/>
+        </svg>
+        <div class="timer-ring-text">
+          <div class="timer-display" id="rest-display">01:30</div>
+        </div>
+      </div>
+      <div class="timer-controls">
+        <button class="timer-btn secondary" onclick="addRestTime(-15)">-15s</button>
+        <button class="timer-btn primary" id="rest-btn" onclick="toggleRest()">▶</button>
+        <button class="timer-btn secondary" onclick="addRestTime(15)">+15s</button>
+      </div>
+      <div class="rest-presets">
+        <button class="preset-btn" onclick="setRestTime(30)">30s</button>
+        <button class="preset-btn" onclick="setRestTime(60)">1 min</button>
+        <button class="preset-btn" onclick="setRestTime(90)">1:30</button>
+        <button class="preset-btn" onclick="setRestTime(120)">2 min</button>
+        <button class="preset-btn" onclick="setRestTime(180)">3 min</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== STATS ======== -->
+<div class="page" id="page-stats">
+  <div class="header">
+    <div class="logo">You<span>Fit</span></div>
+    <div class="header-sub">Ultimate Fitness</div>
+  </div>
+  <div class="stats-page">
+    <div class="chart-card">
+      <div class="chart-title">Weekly Volume</div>
+      <div class="chart-sub">Total weight lifted per day (kg)</div>
+      <div class="chart-wrap"><canvas id="chart-volume"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Sets Per Day</div>
+      <div class="chart-sub">Number of sets completed</div>
+      <div class="chart-wrap"><canvas id="chart-sets"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Category Breakdown</div>
+      <div class="chart-sub">Volume by muscle group</div>
+      <div class="chart-wrap"><canvas id="chart-category"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Workout Frequency</div>
+      <div class="chart-sub">Days worked out per week</div>
+      <div class="chart-wrap"><canvas id="chart-freq"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== STREAK ======== -->
+<div class="page" id="page-streak">
+  <div class="header">
+    <div class="logo">You<span>Fit</span></div>
+    <div class="header-sub">Ultimate Fitness</div>
+  </div>
+  <div class="streak-hero">
+    <div class="streak-num" id="streak-display">0</div>
+    <div class="streak-label">🔥 Day Streak</div>
+  </div>
+  <div class="streak-stats">
+    <div class="streak-stat">
+      <div class="streak-stat-val" id="streak-best">0</div>
+      <div class="streak-stat-label">Best Streak</div>
+    </div>
+    <div class="streak-stat">
+      <div class="streak-stat-val" id="streak-total">0</div>
+      <div class="streak-stat-label">Total Days</div>
+    </div>
+    <div class="streak-stat">
+      <div class="streak-stat-val" id="streak-week">0</div>
+      <div class="streak-stat-label">This Week</div>
+    </div>
+  </div>
+  <div class="week-calendar">
+    <div class="week-cal-title">This Week</div>
+    <div class="week-days" id="week-days"></div>
+  </div>
+  <div style="margin:12px 16px 0">
+    <div class="monthly-grid">
+      <div class="month-header">
+        <button class="month-nav" onclick="changeMonth(-1)">‹</button>
+        <div style="font-size:14px;font-weight:600" id="month-label"></div>
+        <button class="month-nav" onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="month-grid-days" id="month-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== PLAN ======== -->
+<div class="page" id="page-plan">
+  <div class="header">
+    <div class="logo">You<span>Fit</span></div>
+    <div class="header-sub">Ultimate Fitness</div>
+  </div>
+  <div style="padding:12px 16px 0 16px">
+    <div class="log-title">Weekly Timetable</div>
+    <div style="font-size:13px;color:var(--text2);margin-top:2px">Plan your training week</div>
+  </div>
+  <div id="timetable-list" style="padding:12px 16px 0"></div>
+</div>
+
+<!-- ======== BMI ======== -->
+<div class="page" id="page-bmi">
+  <div class="header">
+    <div class="logo">You<span>Fit</span></div>
+    <div class="header-sub">Ultimate Fitness</div>
+  </div>
+  <div class="bmi-page">
+    <div class="bmi-form">
+      <div class="log-title" style="margin-bottom:16px">BMI Calculator</div>
+      <div class="unit-toggle">
+        <div class="unit-opt active" id="unit-metric" onclick="setUnit('metric')">Metric (kg/cm)</div>
+        <div class="unit-opt" id="unit-imperial" onclick="setUnit('imperial')">Imperial (lb/in)</div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Height</label>
+        <div class="input-row">
+          <input class="bmi-input" type="number" id="bmi-h1" placeholder="cm" min="50" max="300">
+          <input class="bmi-input" type="number" id="bmi-h2" placeholder="in (opt.)" min="0" max="11" style="display:none">
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Weight</label>
+        <input class="bmi-input" type="number" id="bmi-w" placeholder="kg" min="10" max="400" style="width:100%">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Age (optional)</label>
+        <input class="bmi-input" type="number" id="bmi-age" placeholder="years" min="1" max="120" style="width:100%">
+      </div>
+      <button class="calc-btn" onclick="calcBMI()">Calculate BMI</button>
+    </div>
+    <div class="bmi-result" id="bmi-result">
+      <div class="bmi-number" id="bmi-value">--</div>
+      <div class="bmi-category" id="bmi-cat">--</div>
+      <div class="bmi-bar-wrap">
+        <div class="bmi-bar">
+          <div class="bmi-needle" id="bmi-needle" style="left:0%"></div>
+        </div>
+        <div class="bmi-range-labels">
+          <span>16</span><span>18.5</span><span>25</span><span>30</span><span>40</span>
+        </div>
+      </div>
+      <div class="bmi-info" id="bmi-info"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== PRs ======== -->
+<div class="page" id="page-prs">
+  <div class="header">
+    <div class="logo">You<span>Fit</span></div>
+    <div class="header-sub">Ultimate Fitness</div>
+  </div>
+  <div class="pr-page">
+    <div class="log-title" style="margin-bottom:12px">Personal Records</div>
+    <div class="pr-filter" id="pr-filter"></div>
+    <div class="pr-list" id="pr-list"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="nav">
+  <div class="nav-item active" id="nav-home" onclick="goTo('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Home</span>
+  </div>
+  <div class="nav-item" id="nav-log" onclick="goTo('log')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+    <span>Log</span>
+  </div>
+  <div class="nav-item" id="nav-timer" onclick="goTo('timer')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span>Timer</span>
+  </div>
+  <div class="nav-item" id="nav-stats" onclick="goTo('stats')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>Stats</span>
+  </div>
+  <div class="nav-item" id="nav-streak" onclick="goTo('streak')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c0 0-6 5-6 10a6 6 0 0012 0C18 7 12 2 12 2z"/></svg>
+    <span>Streak</span>
+  </div>
+  <div class="nav-item" id="nav-plan" onclick="goTo('plan')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>Plan</span>
+  </div>
+  <div class="nav-item" id="nav-bmi" onclick="goTo('bmi')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    <span>BMI</span>
+  </div>
+  <div class="nav-item" id="nav-prs" onclick="goTo('prs')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg>
+    <span>PRs</span>
+  </div>
+</nav>
+
+<!-- Timetable modal -->
+<div class="modal-overlay" id="plan-modal">
+  <div class="modal">
+    <div class="modal-title">Add Exercise to <span id="modal-day-name"></span></div>
+    <input class="modal-input" type="text" id="modal-ex-name" placeholder="Exercise name (e.g. Bench Press)">
+    <input class="modal-input" type="number" id="modal-sets" placeholder="Sets" min="1" max="20">
+    <input class="modal-input" type="number" id="modal-reps" placeholder="Reps per set" min="1" max="50">
+    <button class="modal-btn" onclick="addTimetableEntry()">Add Exercise</button>
+    <button class="modal-cancel" onclick="closePlanModal()">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const MUSCLES = ['All','Chest','Back','Shoulders','Arms','Legs','Core','Cardio'];
+const EXERCISES = {
+  Chest: ['Bench Press','Incline Bench','Decline Bench','Push-ups','Cable Fly','Dumbbell Fly','Chest Dips','Pec Deck'],
+  Back: ['Deadlift','Pull-ups','Lat Pulldown','Barbell Row','Seated Row','T-Bar Row','Single Arm Row','Face Pull'],
+  Shoulders: ['Overhead Press','Arnold Press','Lateral Raise','Front Raise','Rear Delt Fly','Upright Row','Shrugs','Cable Lateral'],
+  Arms: ['Barbell Curl','Hammer Curl','Tricep Pushdown','Skull Crushers','Dips','Preacher Curl','Cable Curl','Overhead Extension'],
+  Legs: ['Squat','Leg Press','Romanian Deadlift','Leg Curl','Leg Extension','Calf Raise','Lunge','Hip Thrust','Bulgarian Split Squat'],
+  Core: ['Plank','Crunches','Russian Twist','Hanging Leg Raise','Cable Crunch','Ab Wheel','Bicycle Crunch','Side Plank'],
+  Cardio: ['Running','Cycling','Rowing','Jump Rope','Stair Climber','Elliptical','HIIT','Swimming']
+};
+const ALL_EXERCISES = Object.values(EXERCISES).flat();
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+function load(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch{return def;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+let workoutLogs = load('ff_logs',{});
+let timetable = load('ff_timetable', Object.fromEntries(DAYS.map(d=>[d,[]])));
+let currentPage = 'home';
+let logSets = {};
+let currentMuscle = 'All';
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function goTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('nav-'+page).classList.add('active');
+  currentPage = page;
+  if(page==='home') updateHome();
+  if(page==='log') initLog();
+  if(page==='stats') initStats();
+  if(page==='streak') initStreak();
+  if(page==='plan') renderTimetable();
+  if(page==='prs') renderPRs();
+}
+
+// ============================================================
+// HOME
+// ============================================================
+function updateHome(){
+  const today = todayKey();
+  const log = workoutLogs[today] || {sets:0, volume:0};
+  document.getElementById('home-sets').textContent = log.sets||0;
+  document.getElementById('home-vol').textContent = log.volume||0;
+  document.getElementById('home-streak').textContent = calcStreak();
+}
+
+function todayKey(){
+  return new Date().toISOString().split('T')[0];
+}
+
+function calcStreak(){
+  let streak=0;
+  let d=new Date();
+  while(true){
+    const k=d.toISOString().split('T')[0];
+    if(workoutLogs[k]&&workoutLogs[k].sets>0) streak++;
+    else break;
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+
+// ============================================================
+// LOG
+// ============================================================
+function initLog(){
+  const d=new Date();
+  document.getElementById('log-date').textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  // Build muscle tabs
+  const tabsEl = document.getElementById('muscle-tabs');
+  tabsEl.innerHTML = MUSCLES.map(m=>`<div class="muscle-tab${m===currentMuscle?' active':''}" onclick="selectMuscle('${m}')">${m}</div>`).join('');
+  renderExercises();
+}
+
+function selectMuscle(m){
+  currentMuscle=m;
+  document.querySelectorAll('.muscle-tab').forEach((t,i)=>{t.classList.toggle('active',MUSCLES[i]===m);});
+  renderExercises();
+}
+
+function getExercisesForMuscle(m){
+  if(m==='All') return ALL_EXERCISES.slice(0,16);
+  return EXERCISES[m]||[];
+}
+
+function renderExercises(){
+  const exs = getExercisesForMuscle(currentMuscle);
+  const container = document.getElementById('exercise-list');
+  container.innerHTML = '';
+  exs.forEach(ex=>{
+    if(!logSets[ex]) logSets[ex]=[];
+    const setsHtml = logSets[ex].map((s,i)=>`
+      <tr>
+        <td style="color:var(--text2)">${i+1}</td>
+        <td><input class="set-input" type="number" value="${s.reps||''}" placeholder="Reps" onchange="updateSet('${ex}',${i},'reps',this.value)"></td>
+        <td><input class="set-input" type="number" value="${s.weight||''}" placeholder="kg" onchange="updateSet('${ex}',${i},'weight',this.value)"></td>
+        <td><button class="del-set" onclick="delSet('${ex}',${i})">✕</button></td>
+      </tr>`).join('');
+    const card = document.createElement('div');
+    card.className='ex-card';
+    card.innerHTML=`
+      <div class="ex-header" onclick="toggleEx(this)">
+        <div class="ex-name">${ex}</div>
+        <div class="ex-sets-count" id="sets-count-${ex.replace(/\s/g,'_')}">${logSets[ex].length} sets</div>
+      </div>
+      <div class="ex-body">
+        <table class="sets-table">
+          <thead><tr><th>Set</th><th>Reps</th><th>Weight</th><th></th></tr></thead>
+          <tbody id="sets-${ex.replace(/\s/g,'_')}">${setsHtml}</tbody>
+        </table>
+        <button class="add-set-btn" onclick="addSet('${ex}')">+ Add Set</button>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function toggleEx(header){
+  const body=header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function addSet(ex){
+  if(!logSets[ex]) logSets[ex]=[];
+  logSets[ex].push({reps:'',weight:''});
+  renderExercises();
+  // Re-open the exercise
+  setTimeout(()=>{
+    const cards=document.querySelectorAll('.ex-card');
+    const exs=getExercisesForMuscle(currentMuscle);
+    const idx=exs.indexOf(ex);
+    if(idx>=0&&cards[idx]) cards[idx].querySelector('.ex-body').classList.add('open');
+  },10);
+}
+
+function delSet(ex,i){
+  logSets[ex].splice(i,1);
+  renderExercises();
+}
+
+function updateSet(ex,i,field,val){
+  if(!logSets[ex]||!logSets[ex][i]) return;
+  logSets[ex][i][field]=parseFloat(val)||0;
+  const key=ex.replace(/\s/g,'_');
+  const el=document.getElementById('sets-count-'+key);
+  if(el) el.textContent=logSets[ex].length+' sets';
+}
+
+function saveLog(){
+  let totalSets=0, totalVol=0;
+  const byCategory={};
+  Object.entries(logSets).forEach(([ex,sets])=>{
+    if(sets.length===0) return;
+    const cat=Object.entries(EXERCISES).find(([_,arr])=>arr.includes(ex))?.[0]||'Other';
+    sets.forEach(s=>{
+      if(s.reps>0){
+        totalSets++;
+        const vol=(s.reps||0)*(s.weight||0);
+        totalVol+=vol;
+        byCategory[cat]=(byCategory[cat]||0)+vol;
+      }
+    });
+  });
+  const today=todayKey();
+  if(!workoutLogs[today]) workoutLogs[today]={};
+  workoutLogs[today].sets=totalSets;
+  workoutLogs[today].volume=Math.round(totalVol);
+  workoutLogs[today].sets_data=JSON.parse(JSON.stringify(logSets));
+  workoutLogs[today].category=byCategory;
+  save('ff_logs',workoutLogs);
+  toast('✅ Workout saved!');
+  updateHome();
+  // Auto-detect PRs
+  detectPRs();
+}
+
+function detectPRs(){
+  const prs=load('ff_prs',{});
+  let updated=false;
+  const today=todayKey();
+  Object.entries(logSets).forEach(([ex,sets])=>{
+    sets.forEach(s=>{
+      if(s.weight>0&&s.reps>0){
+        const v=s.weight;
+        if(!prs[ex]||v>prs[ex].weight){
+          prs[ex]={weight:v,reps:s.reps,date:today};
+          updated=true;
+        }
+      }
+    });
+  });
+  if(updated){save('ff_prs',prs);toast('🏆 New PR detected!');}
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+let swRunning=false, swStart=0, swElapsed=0, swInterval=null, swLaps=[];
+let restRunning=false, restRemaining=90, restTotal=90, restInterval=null;
+
+function switchTimer(t){
+  document.getElementById('tab-stopwatch').classList.toggle('active',t==='stopwatch');
+  document.getElementById('tab-rest').classList.toggle('active',t==='rest');
+  document.getElementById('stopwatch-ui').style.display=t==='stopwatch'?'flex':'none';
+  document.getElementById('rest-ui').style.display=t==='rest'?'flex':'none';
+}
+
+function toggleStopwatch(){
+  if(swRunning){
+    clearInterval(swInterval);
+    swElapsed+=Date.now()-swStart;
+    swRunning=false;
+    document.getElementById('sw-btn').textContent='▶';
+  } else {
+    swStart=Date.now();
+    swRunning=true;
+    document.getElementById('sw-btn').textContent='⏸';
+    swInterval=setInterval(updateSW,100);
+  }
+}
+
+function updateSW(){
+  const ms=swElapsed+(Date.now()-swStart);
+  const cs=Math.floor(ms/100)%10;
+  const s=Math.floor(ms/1000)%60;
+  const m=Math.floor(ms/60000);
+  document.getElementById('sw-display').textContent=
+    pad(m)+':'+pad(s)+'.'+cs;
+  const ring=document.getElementById('sw-ring');
+  const pct=(s%60)/60;
+  ring.style.strokeDashoffset=691-(691*pct);
+}
+
+function swReset(){
+  clearInterval(swInterval);
+  swRunning=false;swElapsed=0;swLaps=[];
+  document.getElementById('sw-display').textContent='00:00.0';
+  document.getElementById('sw-btn').textContent='▶';
+  document.getElementById('sw-ring').style.strokeDashoffset=691;
+  document.getElementById('lap-list').innerHTML='';
+}
+
+function swLap(){
+  if(!swRunning&&swElapsed===0) return;
+  const ms=swElapsed+(swRunning?Date.now()-swStart:0);
+  const cs=Math.floor(ms/100)%10;
+  const s=Math.floor(ms/1000)%60;
+  const m=Math.floor(ms/60000);
+  swLaps.unshift(pad(m)+':'+pad(s)+'.'+cs);
+  const el=document.getElementById('lap-list');
+  el.innerHTML=swLaps.map((l,i)=>`<div class="lap-item"><span class="lap-num">Lap ${swLaps.length-i}</span><span>${l}</span></div>`).join('');
+}
+
+function toggleRest(){
+  if(restRunning){
+    clearInterval(restInterval);restRunning=false;
+    document.getElementById('rest-btn').textContent='▶';
+  } else {
+    if(restRemaining<=0) restRemaining=restTotal;
+    restRunning=true;
+    document.getElementById('rest-btn').textContent='⏸';
+    restInterval=setInterval(tickRest,1000);
+  }
+}
+
+function tickRest(){
+  restRemaining--;
+  if(restRemaining<=0){restRemaining=0;clearInterval(restInterval);restRunning=false;document.getElementById('rest-btn').textContent='▶';toast('✅ Rest complete!');}
+  updateRestDisplay();
+}
+
+function updateRestDisplay(){
+  const m=Math.floor(restRemaining/60),s=restRemaining%60;
+  document.getElementById('rest-display').textContent=pad(m)+':'+pad(s);
+  const pct=restTotal>0?restRemaining/restTotal:0;
+  document.getElementById('rest-ring').style.strokeDashoffset=691*(1-pct);
+}
+
+function setRestTime(s){
+  clearInterval(restInterval);restRunning=false;
+  restTotal=s;restRemaining=s;
+  document.getElementById('rest-btn').textContent='▶';
+  updateRestDisplay();
+}
+
+function addRestTime(d){
+  restRemaining=Math.max(0,restRemaining+d);
+  restTotal=Math.max(restTotal,restRemaining);
+  updateRestDisplay();
+}
+
+function pad(n){return String(n).padStart(2,'0');}
+
+// ============================================================
+// STATS
+// ============================================================
+let charts={};
+function initStats(){
+  const keys=Object.keys(workoutLogs).sort().slice(-14);
+  const labels=keys.map(k=>{const d=new Date(k);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});});
+  const vols=keys.map(k=>workoutLogs[k]?.volume||0);
+  const setsArr=keys.map(k=>workoutLogs[k]?.sets||0);
+
+  // Category totals
+  const catTotals={};
+  Object.values(workoutLogs).forEach(log=>{
+    if(log.category) Object.entries(log.category).forEach(([c,v])=>{catTotals[c]=(catTotals[c]||0)+v;});
+  });
+
+  // Weekly freq
+  const weekFreq=[0,0,0,0];
+  const today=new Date();
+  for(let w=0;w<4;w++){
+    for(let d=0;d<7;d++){
+      const dd=new Date(today);dd.setDate(today.getDate()-(w*7+d));
+      const k=dd.toISOString().split('T')[0];
+      if(workoutLogs[k]&&workoutLogs[k].sets>0) weekFreq[w]++;
+    }
+  }
+
+  const chartOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8b949e',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8b949e',font:{size:10}}}}};
+
+  destroyChart('chart-volume');
+  charts['chart-volume']=new Chart(document.getElementById('chart-volume').getContext('2d'),{type:'bar',data:{labels,datasets:[{data:vols,backgroundColor:'rgba(57,211,83,.5)',borderColor:'#39d353',borderWidth:2,borderRadius:6}]},options:chartOpts});
+
+  destroyChart('chart-sets');
+  charts['chart-sets']=new Chart(document.getElementById('chart-sets').getContext('2d'),{type:'line',data:{labels,datasets:[{data:setsArr,borderColor:'#58a6ff',backgroundColor:'rgba(88,166,255,.1)',fill:true,tension:.4,pointRadius:4,pointBackgroundColor:'#58a6ff'}]},options:chartOpts});
+
+  const catKeys=Object.keys(catTotals);
+  const catColors=['#39d353','#58a6ff','#e3942c','#f85149','#bc8cff','#79c0ff','#ffa657','#56d364'];
+  destroyChart('chart-category');
+  charts['chart-category']=new Chart(document.getElementById('chart-category').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:catKeys.length?catKeys:['No data'],datasets:[{data:catKeys.length?Object.values(catTotals):[1],backgroundColor:catColors,borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#8b949e',font:{size:11},boxWidth:12}}}}
+  });
+
+  destroyChart('chart-freq');
+  charts['chart-freq']=new Chart(document.getElementById('chart-freq').getContext('2d'),{
+    type:'bar',
+    data:{labels:['4 wks ago','3 wks ago','2 wks ago','This week'],datasets:[{data:weekFreq.reverse(),backgroundColor:'rgba(227,148,44,.5)',borderColor:'#e3942c',borderWidth:2,borderRadius:6}]},
+    options:{...chartOpts,scales:{...chartOpts.scales,y:{...chartOpts.scales.y,max:7,ticks:{...chartOpts.scales.y.ticks,stepSize:1}}}}
+  });
+}
+
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+// ============================================================
+// STREAK
+// ============================================================
+let calMonth=new Date().getMonth(), calYear=new Date().getFullYear();
+
+function initStreak(){
+  const streak=calcStreak();
+  document.getElementById('streak-display').textContent=streak;
+  document.getElementById('home-streak').textContent=streak;
+  // Best streak
+  const dates=Object.keys(workoutLogs).filter(k=>workoutLogs[k]?.sets>0).sort();
+  let best=0,cur=0,prev=null;
+  dates.forEach(d=>{
+    const dd=new Date(d);
+    if(prev){
+      const diff=(dd-new Date(prev))/(86400000);
+      if(diff===1) cur++;else cur=1;
+    } else cur=1;
+    if(cur>best) best=cur;
+    prev=d;
+  });
+  document.getElementById('streak-best').textContent=best;
+  document.getElementById('streak-total').textContent=dates.length;
+  // This week
+  let weekCount=0;
+  const today=new Date();
+  for(let i=0;i<7;i++){const d=new Date(today);d.setDate(today.getDate()-i);const k=d.toISOString().split('T')[0];if(workoutLogs[k]?.sets>0)weekCount++;}
+  document.getElementById('streak-week').textContent=weekCount;
+  renderWeekCal();
+  renderMonthCal();
+}
+
+function renderWeekCal(){
+  const today=new Date();
+  const dow=today.getDay()===0?6:today.getDay()-1; // Monday=0
+  const week=[];
+  for(let i=0;i<7;i++){const d=new Date(today);d.setDate(today.getDate()-dow+i);week.push(d);}
+  const names=['M','T','W','T','F','S','S'];
+  const el=document.getElementById('week-days');
+  el.innerHTML=week.map((d,i)=>{
+    const k=d.toISOString().split('T')[0];
+    const done=workoutLogs[k]?.sets>0;
+    const isToday=k===todayKey();
+    return `<div class="week-day">
+      <div class="week-day-name">${names[i]}</div>
+      <div class="week-day-dot${done?' done':isToday?' today':''}">${d.getDate()}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderMonthCal(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('month-label').textContent=months[calMonth]+' '+calYear;
+  const first=new Date(calYear,calMonth,1);
+  const last=new Date(calYear,calMonth+1,0);
+  let startDow=first.getDay()===0?6:first.getDay()-1;
+  const days=['M','T','W','T','F','S','S'];
+  let html=days.map(d=>`<div class="month-day-name">${d}</div>`).join('');
+  for(let i=0;i<startDow;i++) html+=`<div class="month-day empty"></div>`;
+  for(let d=1;d<=last.getDate();d++){
+    const k=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const done=workoutLogs[k]?.sets>0;
+    const isToday=k===todayKey();
+    html+=`<div class="month-day${done?' worked':isToday?' today-cell':''}">${d}</div>`;
+  }
+  document.getElementById('month-grid').innerHTML=html;
+}
+
+function changeMonth(dir){
+  calMonth+=dir;
+  if(calMonth<0){calMonth=11;calYear--;}
+  if(calMonth>11){calMonth=0;calYear++;}
+  renderMonthCal();
+}
+
+// ============================================================
+// TIMETABLE
+// ============================================================
+let planModalDay='';
+
+function renderTimetable(){
+  const container=document.getElementById('timetable-list');
+  container.innerHTML=DAYS.map(day=>{
+    const entries=timetable[day]||[];
+    const badge=entries.length>0?`${entries.length} exercises`:'Rest Day';
+    const rows=entries.map((e,i)=>`
+      <div class="workout-entry">
+        <div class="we-name">${e.name}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="we-sets">${e.sets}×${e.reps}</div>
+          <button onclick="removeTimetableEntry('${day}',${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px">✕</button>
+        </div>
+      </div>`).join('');
+    return `<div class="day-schedule">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div class="day-name">${day}</div>
+        <div class="day-badge${entries.length===0?' rest':''}">${badge}</div>
+      </div>
+      <div class="day-content">
+        ${rows}
+        <button class="add-workout-to-day" onclick="openPlanModal('${day}');event.stopPropagation()">+ Add Exercise</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleDay(header){header.nextElementSibling.classList.toggle('open');}
+
+function openPlanModal(day){
+  planModalDay=day;
+  document.getElementById('modal-day-name').textContent=day;
+  document.getElementById('modal-ex-name').value='';
+  document.getElementById('modal-sets').value='';
+  document.getElementById('modal-reps').value='';
+  document.getElementById('plan-modal').classList.add('open');
+}
+
+function closePlanModal(){document.getElementById('plan-modal').classList.remove('open');}
+
+function addTimetableEntry(){
+  const name=document.getElementById('modal-ex-name').value.trim();
+  const sets=parseInt(document.getElementById('modal-sets').value)||3;
+  const reps=parseInt(document.getElementById('modal-reps').value)||10;
+  if(!name){toast('Please enter exercise name');return;}
+  if(!timetable[planModalDay]) timetable[planModalDay]=[];
+  timetable[planModalDay].push({name,sets,reps});
+  save('ff_timetable',timetable);
+  closePlanModal();
+  renderTimetable();
+  toast('✅ Added to '+planModalDay);
+}
+
+function removeTimetableEntry(day,idx){
+  timetable[day].splice(idx,1);
+  save('ff_timetable',timetable);
+  renderTimetable();
+}
+
+// ============================================================
+// BMI
+// ============================================================
+let bmiUnit='metric';
+function setUnit(u){
+  bmiUnit=u;
+  document.getElementById('unit-metric').classList.toggle('active',u==='metric');
+  document.getElementById('unit-imperial').classList.toggle('active',u==='imperial');
+  const h1=document.getElementById('bmi-h1');
+  const h2=document.getElementById('bmi-h2');
+  const w=document.getElementById('bmi-w');
+  if(u==='metric'){h1.placeholder='cm';h2.style.display='none';w.placeholder='kg';}
+  else{h1.placeholder='ft';h2.style.display='block';h2.placeholder='in';w.placeholder='lb';}
+}
+
+function calcBMI(){
+  let h=parseFloat(document.getElementById('bmi-h1').value);
+  const h2=parseFloat(document.getElementById('bmi-h2').value)||0;
+  let w=parseFloat(document.getElementById('bmi-w').value);
+  const age=parseInt(document.getElementById('bmi-age').value)||0;
+  if(!h||!w){toast('Please enter height and weight');return;}
+  let hm,wkg;
+  if(bmiUnit==='metric'){hm=h/100;wkg=w;}
+  else{hm=(h*12+h2)*0.0254;wkg=w*0.453592;}
+  const bmi=wkg/(hm*hm);
+  const b=Math.round(bmi*10)/10;
+  let cat,color;
+  if(b<16){cat='Severely Underweight';color='#58a6ff';}
+  else if(b<18.5){cat='Underweight';color='#79c0ff';}
+  else if(b<25){cat='Normal Weight';color='#39d353';}
+  else if(b<30){cat='Overweight';color='#e3942c';}
+  else if(b<35){cat='Obese Class I';color='#f85149';}
+  else{cat='Obese Class II+';color='#ff7b72';}
+  // Needle position (16 to 40 range mapped to 0-100%)
+  const pct=Math.min(100,Math.max(0,(b-16)/(40-16)*100));
+  document.getElementById('bmi-value').textContent=b;
+  document.getElementById('bmi-value').style.color=color;
+  document.getElementById('bmi-cat').textContent=cat;
+  document.getElementById('bmi-cat').style.color=color;
+  document.getElementById('bmi-needle').style.left=pct+'%';
+  // Ideal weight range
+  const idealLow=Math.round(18.5*hm*hm);
+  const idealHigh=Math.round(24.9*hm*hm);
+  const idealLowDisp=bmiUnit==='metric'?idealLow+'kg':Math.round(idealLow*2.205)+'lb';
+  const idealHighDisp=bmiUnit==='metric'?idealHigh+'kg':Math.round(idealHigh*2.205)+'lb';
+  let info=`
+    <div class="bmi-info-row"><span class="bmi-info-label">Your BMI</span><span>${b}</span></div>
+    <div class="bmi-info-row"><span class="bmi-info-label">Category</span><span style="color:${color}">${cat}</span></div>
+    <div class="bmi-info-row"><span class="bmi-info-label">Ideal Weight</span><span>${idealLowDisp} – ${idealHighDisp}</span></div>`;
+  if(age>=18&&age<60) info+=`<div class="bmi-info-row"><span class="bmi-info-label">Age</span><span>${age} years</span></div>`;
+  document.getElementById('bmi-info').innerHTML=info;
+  const res=document.getElementById('bmi-result');
+  res.classList.add('show');
+}
+
+// ============================================================
+// PRs
+// ============================================================
+let prFilter='All';
+
+function renderPRs(){
+  const prs=load('ff_prs',{});
+  const cats=['All',...Object.keys(EXERCISES)];
+  const filterEl=document.getElementById('pr-filter');
+  filterEl.innerHTML=cats.map(c=>`<button class="pr-filter-btn${c===prFilter?' active':''}" onclick="setPRFilter('${c}')">${c}</button>`).join('');
+  const prList=document.getElementById('pr-list');
+  let entries=Object.entries(prs);
+  if(prFilter!=='All') entries=entries.filter(([ex])=>EXERCISES[prFilter]?.includes(ex));
+  entries.sort((a,b)=>b[1].weight-a[1].weight);
+  if(entries.length===0){
+    prList.innerHTML=`<div class="no-data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg><div>No personal records yet</div><div style="font-size:12px;margin-top:4px">Log workouts to track your PRs</div></div>`;
+    return;
+  }
+  prList.innerHTML=entries.map(([ex,pr],i)=>{
+    const rankClass=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    const d=new Date(pr.date);
+    const dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    return `<div class="pr-card">
+      <div class="pr-rank ${rankClass}">${medal||i+1}</div>
+      <div class="pr-info">
+        <div class="pr-ex">${ex}</div>
+        <div class="pr-date">${dateStr} · ${pr.reps} reps</div>
+      </div>
+      <div class="pr-weight">${pr.weight}<span> kg</span></div>
+    </div>`;
+  }).join('');
+}
+
+function setPRFilter(f){prFilter=f;renderPRs();}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer=null;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('log-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  updateHome();
+  setRestTime(90);
+  // Close modal on overlay click
+  document.getElementById('plan-modal').addEventListener('click',function(e){if(e.target===this)closePlanModal();});
+  // Seed demo data if empty
+  const keys=Object.keys(workoutLogs);
+  if(keys.length===0){
+    const d=new Date();
+    for(let i=6;i>=1;i--){
+      if(i%2===0) continue;
+      const dd=new Date(d);dd.setDate(d.getDate()-i);
+      const k=dd.toISOString().split('T')[0];
+      workoutLogs[k]={sets:Math.floor(Math.random()*10+5),volume:Math.floor(Math.random()*3000+1000),category:{Chest:800,Back:600,Legs:1200}};
+    }
+    save('ff_logs',workoutLogs);
+    updateHome();
+  }
+});
+</script>
+</body>
+</html>
